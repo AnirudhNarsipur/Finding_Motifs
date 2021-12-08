@@ -1,39 +1,43 @@
+import random 
 import numpy as np
-comp = {"A":["U"],"U":["A","G"],"C":["G"],"G":["C","U"]}
-def is_comp(nucl,nucl2):
-    return nucl2 in comp[nucl]
-
-def get_rev(seq,i):
-    return seq[-i-1]
-def al(seq):
-    sqlen = len(seq)
-    mtrx = np.zeros((sqlen,sqlen)).astype(int)
-    for i in range(sqlen):
-        rev = seq[-i-1]
-        if is_comp(seq[0] ,rev):
-            mtrx[i][0] = 1
-        if is_comp(seq[-1],seq[i]):
-            mtrx[0][i] = 1
-    for i in range(1,sqlen):
-        for j in range(1,sqlen):
-            if is_comp(seq[-i-1], seq[j]):
-                mtrx[i][j] = mtrx[i-1][j-1] + 1 
-    return mtrx
-    
-def print_mtrx(seq,mtrx):
-    print(" ",end=" ")
-    for i in seq:
-        print(i,end=" ")
-    print()
-    rev = seq[::-1]
-    for i in range(len(mtrx)):
-        print(rev[i],end=" ")
-        for j in range(len(mtrx[0])):
-            print(mtrx[i][j],end=" ")
-        print()
-
-if __name__ == "__main__":
-    sq = "CAGAUUUACUAGUACGUAAUUG"
-    print_mtrx(sq,al(sq))
-
-    
+from numpy.core.defchararray import count
+conv = {"A":0, "C":1, "G":2, "T":3}
+def score_motif(pr_m,seq):
+    s = 1
+    for i in range(0,len(seq)):
+        s*=pr_m[conv[seq[i]]][i]
+    return s
+def GibbsSampler(Seqs : "list[str]", k:int, numSeq:int, seqLen:int,itr:int):
+    rand_starts = random.choices(range(0,seqLen-k+1),k=numSeq)
+    choose_random_seq = lambda : random.randint(0, numSeq - 1)
+    count_matrix = np.zeros((4,k))
+    profile_matrix = np.zeros((4,k))
+    last_k_pos = seqLen - k 
+    def generate_count_matrix(exclude):
+        for i in range(0,numSeq):
+            if i == exclude:
+                continue
+            else:
+                kstart = rand_starts[i]
+                for j in range(kstart,kstart+k):
+                    count_matrix[conv[Seqs[i][j]]][j-kstart] += 1
+    def set_excluded_motif(exclseq : int):
+        present_kmers = np.zeros((last_k_pos + 1))
+        for i in range(0,last_k_pos):
+            present_kmers[i] = score_motif(profile_matrix,Seqs[exclseq][i:i+k])
+        sm = sum(present_kmers)
+        present_kmers=present_kmers/sm
+        rand_starts[exclseq] = random.choices(range(0,last_k_pos+1),present_kmers,k=1)[0]
+    exclude_seqs = random.choices(range(0,numSeq),k=itr)
+    for i in range(itr):
+        exclude_seq : int = exclude_seqs[i]
+        generate_count_matrix(exclude_seq)
+        profile_matrix = (count_matrix + 1)/(4+(numSeq-1))
+        set_excluded_motif(exclude_seq)
+        count_matrix = np.zeros((4,k))
+    return profile_matrix
+if __name__ == "__main__": 
+    seqs = ["ATCGAA","ACTTCG"]
+    print(GibbsSampler(seqs,k=3,numSeq=len(seqs),seqLen=6,itr=3000))
+#Rename column in Pandas dataframe df
+#s
