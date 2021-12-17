@@ -22,6 +22,8 @@
 \documentclass[12pt]{scrartcl} % Font size
 \usepackage{hyperref} 
 \usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
 %----------------------------------------------------------------------------------------
 %	TITLE SECTION
 %----------------------------------------------------------------------------------------
@@ -77,10 +79,10 @@ In this project I use Gibbs Sampling to identify motifs and then apply it to Chi
 Gibbs Sampling is a probabilistic algorithm that iteratively works towards optimal motifs. From the algorithm we can extract motifs as 
 position weight matrices (PWM).
 
-\begin{center}
-\includegraphics[width=0.5\textwidth]{PWM_Example.png}
-\newline Fig 1. An example of a Position Weight Matrix (PWM) \newline for a DNA sequence of length 9. 
-\end{center}
+\begin{figure}
+\includegraphics[width=0.5\textwidth]{Pictures/PWM_Example.png}
+\caption{ An example of a Position Weight Matrix (PWM) \newline for a DNA sequence of length 9. }
+\end{figure}
 
 Position weight matrices as given above represent a motif by the probability of a each nucleotide being present at a given position. 
 
@@ -92,7 +94,7 @@ motif length $k$, find a $k-mer$ in each string $s_i$ such that distance between
 
 We then use Gibbs Sampling to solve it. Gibbs Sampling proceeds iteratively in the following manner:
 \begin{center}
-    \includegraphics[width=0.95\textwidth]{Pseudocode.png}
+    \includegraphics[width=0.95\textwidth]{Pictures/Pseudocode.png}
     \newline Fig 2. Pseudocode for Gibbs Sampling.
 \end{center}
 
@@ -101,7 +103,7 @@ We then use Gibbs Sampling to solve it. Gibbs Sampling proceeds iteratively in t
     \item Randomly select a string $s_j$ from the set of strings $s$.
     \item Construct a profile matrix $P$ from the strings $s - \{s_j\}$.
     \begin{center}
-        \includegraphics[width=0.95\textwidth]{Profile_m.png}
+        \includegraphics[width=0.95\textwidth]{Pictures/Profile_m.png}
         \newline Fig 3. Construction of the profile matrix.
     \end{center}
     The profile matrix $P$ is constructed by taking the count of each nucleotide in each position of the strings and then dividing by the total
@@ -137,6 +139,64 @@ $B_i$ has order $i$ indicating that the probability of observing a nucleotide de
 nucleotides.
 
 \section{Results}
+In order to validate the implementation of the  methods described above Chip-Seq derived data from Minch et al. (2015) was used. The dataset contained
+approximately 16,000 unique peaks for 156 regulators. In order to avoid issues with overtly small data sizes I got results only from regulators with
+more than 50 peaks. I ran the Gibbs Sampling algorithm with no background model, a zero order background and a first order background model. All motifs generated
+are of length 9 and the algorithm was run for 3000 iterations. 
+% Three images next to each other
+\begin{figure}[h!]
+\centering
+    \begin{subfigure}{.4\textwidth}
+
+    \includegraphics[width=0.5\textwidth]{Pictures/rv002c_no_bg.png}
+    \caption{No background model}
+\end{subfigure}%
+    \begin{subfigure}{.4\textwidth}
+   
+    \includegraphics[width=0.5\textwidth]{Pictures/rv002c_zero_bg.png}
+        \caption{Zero background}
+\end{subfigure}%
+    \begin{subfigure}{.4\textwidth}
+    
+      \includegraphics[width=0.5\textwidth]{Pictures/rv002c_one_bg.png}
+        \caption{First order background}
+    \end{subfigure}%
+     \caption{Motifs Visualized For Rv002c}
+\end{figure}
+\begin{figure}
+    \centering
+        \begin{subfigure}{.4\textwidth}
+    
+        \includegraphics[width=0.5\textwidth]{Pictures/rv2009_no_bg.png}
+        \caption{No background model}
+    \end{subfigure}%
+        \begin{subfigure}{.4\textwidth}
+       
+        \includegraphics[width=0.5\textwidth]{Pictures/rv2009_zero_bg.png}
+            \caption{Zero background}
+    \end{subfigure}%
+        \begin{subfigure}{.4\textwidth}
+        
+          \includegraphics[width=0.5\textwidth]{Pictures/rv2009_one_bg.png}
+            \caption{First order background}
+        \end{subfigure}%
+         \caption{Motifs Visualized For Rv2009}
+    \end{figure}
+
+Visualized above are motifs generated for Rv002c and Rv2009 which 218 and 67 samples
+respectively. Immediately we can see a dramatic difference in using a background model. Since
+Mtb is GC rich without a background model we pick out GC repeats. Using a background model we pick out 
+much better motifs that are not simple repeats. 
+
+Interestingly, the information content between different background models does not differ.A first order background model
+leads to slightly lower information content. 
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.5\textwidth]{Pictures/ic_content.png}
+    \caption{Information Content Between Background Models}
+\end{figure}
+It is impossible to draw strong conclusions from the above results given the small sample size (51 regulatory factors). Further information
+content clearly does not tell the whole story here as can be seen from the sequence logos. 
 \section{Acknowledgements}
 This project is a study of well established methods and as such would not possible without existing literature.A special debt is owed
 to Bioinformatics Algorithms by Compeau and Pevzner from where all figures are taken from. All data used in this project is drawn from 

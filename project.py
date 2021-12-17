@@ -1,13 +1,13 @@
 import random 
 import numpy as np
 from numpy.core.defchararray import count
-conv = {"A":0, "C":1, "G":2, "T":3}
+from background import *
 def score_motif(pr_m,seq):
     s = 1
     for i in range(0,len(seq)):
         s*=pr_m[conv[seq[i]]][i]
     return s
-def GibbsSampler(Seqs : "list[str]", k:int, numSeq:int, seqLen:int,itr:int):
+def GibbsSampler(Seqs : "list[str]", k:int, numSeq:int, seqLen:int,itr:int,background=None):
     rand_starts = random.choices(range(0,seqLen-k+1),k=numSeq)
     choose_random_seq = lambda : random.randint(0, numSeq - 1)
     count_matrix = np.zeros((4,k))
@@ -23,8 +23,12 @@ def GibbsSampler(Seqs : "list[str]", k:int, numSeq:int, seqLen:int,itr:int):
                     count_matrix[conv[Seqs[i][j]]][j-kstart] += 1
     def set_excluded_motif(exclseq : int):
         present_kmers = np.zeros((last_k_pos + 1))
-        for i in range(0,last_k_pos):
-            present_kmers[i] = score_motif(profile_matrix,Seqs[exclseq][i:i+k])
+        if background is None:
+            for i in range(0,last_k_pos):
+                present_kmers[i] = score_motif(profile_matrix,Seqs[exclseq][i:i+k])
+        else:
+            for i in range(0,last_k_pos): 
+                present_kmers[i] = score_motif(profile_matrix,Seqs[exclseq][i:i+k]) / background[exclseq][i]
         sm = sum(present_kmers)
         present_kmers=present_kmers/sm
         rand_starts[exclseq] = random.choices(range(0,last_k_pos+1),present_kmers,k=1)[0]
@@ -36,8 +40,3 @@ def GibbsSampler(Seqs : "list[str]", k:int, numSeq:int, seqLen:int,itr:int):
         set_excluded_motif(exclude_seq)
         count_matrix = np.zeros((4,k))
     return profile_matrix
-if __name__ == "__main__": 
-    seqs = ["ATCGAA","ACTTCG"]
-    print(GibbsSampler(seqs,k=3,numSeq=len(seqs),seqLen=6,itr=3000))
-#Rename column in Pandas dataframe df
-#s
